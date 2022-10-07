@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+    <changeSet id="Creating initial tables - labels, posts, writers" author="ZhurkoI">
+        <sql>
+            CREATE TABLE IF NOT EXISTS labels (
+                id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) UNIQUE
+            );
+        </sql>
+        <sql>
+            CREATE TABLE IF NOT EXISTS posts (
+                id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                content TEXT NOT NULL,
+                created TIMESTAMP NOT NULL,
+                updated TIMESTAMP NOT NULL,
+                label_id BIGINT,
+                FOREIGN KEY (label_id)
+                REFERENCES labels (id)
+                ON DELETE SET NULL
+            );
+        </sql>
+        <sql>
+            CREATE TABLE IF NOT EXISTS writers (
+                id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                first_name VARCHAR(255) NOT NULL,
+                last_name VARCHAR(255) NOT NULL,
+                post_id BIGINT,
+                FOREIGN KEY (post_id)
+                REFERENCES posts (id)
+                ON UPDATE SET NULL
+            );
+        </sql>
+    </changeSet>
+</databaseChangeLog>
+
