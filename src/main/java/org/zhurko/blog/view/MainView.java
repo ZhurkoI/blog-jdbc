@@ -11,7 +11,7 @@ public class MainView {
             "0 - Exit program";
 
 //    private final WriterView writerView = new WriterView();
-//    private final PostView postView = new PostView();
+    private final PostView postView = new PostView();
     private final LabelView labelView = new LabelView();
     private final Scanner scanner = new Scanner(System.in);
 
@@ -23,7 +23,7 @@ public class MainView {
 //                    writerView.runMenu();
                     break;
                 case 2:
-//                    postView.runMenu();
+                    postView.runMenu();
                     break;
                 case 3:
                     labelView.runMenu();

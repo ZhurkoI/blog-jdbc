@@ -29,9 +29,9 @@ public class SqlLabelRepositoryImpl implements LabelRepository {
         }
 
         Label savedLabel = null;
-        try(Connection connection = ConnectionBuilder.getConnection();
-            PreparedStatement prepStatement = connection.prepareStatement(INSERT_LABEL,
-                    Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = ConnectionBuilder.getConnection();
+             PreparedStatement prepStatement = connection.prepareStatement(INSERT_LABEL,
+                     Statement.RETURN_GENERATED_KEYS)) {
             prepStatement.setString(1, label.getName());
             prepStatement.executeUpdate();
 

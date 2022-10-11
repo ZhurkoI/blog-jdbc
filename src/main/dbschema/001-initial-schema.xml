@@ -8,20 +8,17 @@
     <changeSet id="Creating initial tables - labels, posts, writers" author="ZhurkoI">
         <sql>
             CREATE TABLE IF NOT EXISTS labels (
-                id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(255) UNIQUE
             );
         </sql>
         <sql>
             CREATE TABLE IF NOT EXISTS posts (
-                id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
                 content TEXT NOT NULL,
                 created TIMESTAMP NOT NULL,
                 updated TIMESTAMP NOT NULL,
-                label_id BIGINT,
-                FOREIGN KEY (label_id)
-                REFERENCES labels (id)
-                ON DELETE SET NULL
+                post_status VARCHAR(255) NOT NULL
             );
         </sql>
         <sql>
@@ -31,8 +28,21 @@
                 last_name VARCHAR(255) NOT NULL,
                 post_id BIGINT,
                 FOREIGN KEY (post_id)
-                REFERENCES posts (id)
-                ON UPDATE SET NULL
+                    REFERENCES posts (id)
+                    ON UPDATE SET NULL
+            );
+        </sql>
+        <sql>
+            CREATE TABLE IF NOT EXISTS post_label (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                post_id BIGINT,
+                label_id BIGINT,
+                FOREIGN KEY (post_id)
+                    REFERENCES posts (id)
+                    ON DELETE CASCADE,
+                FOREIGN KEY (label_id)
+                    REFERENCES labels (id)
+                    ON DELETE CASCADE
             );
         </sql>
     </changeSet>
