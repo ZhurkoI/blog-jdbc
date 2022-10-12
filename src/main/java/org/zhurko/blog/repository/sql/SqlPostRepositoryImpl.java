@@ -21,7 +21,7 @@ import java.util.Set;
 
 public class SqlPostRepositoryImpl implements PostRepository {
 
-    private static final String INSERT_POST = "INSERT INTO posts (content, created, updated, post_status) " +
+    private static final String SAVE_POST = "INSERT INTO posts (content, created, updated, post_status) " +
             "VALUES (?, ?, ?, ?)";
     private static final String GET_ALL_NOT_DELETED_POSTS = "SELECT * FROM posts WHERE post_status NOT LIKE 'DELETED'";
     private static final String GET_POST_BY_ID = "SELECT * FROM posts WHERE id = ? AND post_status NOT LIKE 'DELETED'";
@@ -70,7 +70,7 @@ public class SqlPostRepositoryImpl implements PostRepository {
     public Post save(Post post) {
         Post savedPost = null;
         try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement prepStatement = connection.prepareStatement(INSERT_POST,
+             PreparedStatement prepStatement = connection.prepareStatement(SAVE_POST,
                      Statement.RETURN_GENERATED_KEYS)) {
             Date date = new Date();
             Timestamp timestamp = new Timestamp(date.getTime());

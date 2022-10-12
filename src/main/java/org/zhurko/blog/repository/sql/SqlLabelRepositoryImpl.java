@@ -15,7 +15,7 @@ import java.util.List;
 public class SqlLabelRepositoryImpl implements LabelRepository {
 
     private static final String SELECT_ALL_LABELS = "SELECT * FROM labels";
-    private static final String INSERT_LABEL = "INSERT INTO labels (name) VALUES (?)";
+    private static final String SAVE_LABEL = "INSERT INTO labels (name) VALUES (?)";
     private static final String FIND_LABEL_BY_NAME = "SELECT * FROM labels WHERE name = ?";
     private static final String GET_LABEL_BY_ID = "SELECT * FROM labels WHERE id = ?";
     private static final String DELETE_LABEL_BY_ID = "DELETE FROM labels WHERE id = ?";
@@ -30,7 +30,7 @@ public class SqlLabelRepositoryImpl implements LabelRepository {
 
         Label savedLabel = null;
         try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement prepStatement = connection.prepareStatement(INSERT_LABEL,
+             PreparedStatement prepStatement = connection.prepareStatement(SAVE_LABEL,
                      Statement.RETURN_GENERATED_KEYS)) {
             prepStatement.setString(1, label.getName());
             prepStatement.executeUpdate();
@@ -80,7 +80,7 @@ public class SqlLabelRepositoryImpl implements LabelRepository {
             prepStatement.setLong(2, label.getId());
             int updateResult = prepStatement.executeUpdate();
 
-            // todo: так можем проверять то, что запись проапдейтилась?
+            // todo: Can we check if the record has been updated in this way?
             if (updateResult == 1) {
                 updatedLabel = new Label(label.getId(), label.getName());
             }

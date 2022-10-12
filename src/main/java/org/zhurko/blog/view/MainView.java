@@ -10,7 +10,7 @@ public class MainView {
             "3 - Manage Labels" + System.lineSeparator() +
             "0 - Exit program";
 
-//    private final WriterView writerView = new WriterView();
+    private final WriterView writerView = new WriterView();
     private final PostView postView = new PostView();
     private final LabelView labelView = new LabelView();
     private final Scanner scanner = new Scanner(System.in);
@@ -20,7 +20,7 @@ public class MainView {
             int choice = getChoice();
             switch (choice) {
                 case 1:
-//                    writerView.runMenu();
+                    writerView.runMenu();
                     break;
                 case 2:
                     postView.runMenu();
