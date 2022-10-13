@@ -1,6 +1,7 @@
 package org.zhurko.blog.model;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class Writer {
@@ -66,5 +67,20 @@ public class Writer {
 
     public void setPosts(Set<Post> posts) {
         this.posts = posts;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Writer writer1 = (Writer) o;
+        return Objects.equals(id, writer1.id) && Objects.equals(firstName, writer1.firstName)
+                && Objects.equals(lastName, writer1.lastName) && Objects.equals(posts, writer1.posts)
+                && Objects.equals(writer, writer1.writer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, firstName, lastName, posts, writer);
     }
 }

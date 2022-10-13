@@ -4,6 +4,9 @@ import org.zhurko.blog.controller.PostController;
 import org.zhurko.blog.controller.WriterController;
 import org.zhurko.blog.model.Post;
 import org.zhurko.blog.model.Writer;
+import org.zhurko.blog.repository.sql.SqlLabelRepositoryImpl;
+import org.zhurko.blog.repository.sql.SqlPostRepositoryImpl;
+import org.zhurko.blog.repository.sql.SqlWriterRepositoryImpl;
 import org.zhurko.blog.util.UserInputReader;
 
 import java.util.Arrays;
@@ -27,8 +30,10 @@ public class WriterView {
     };
 
     private final Scanner scanner = new Scanner(System.in);
-    private final WriterController writerController = new WriterController();
-    private final PostController postController = new PostController();
+    private final WriterController writerController = new WriterController(new SqlWriterRepositoryImpl(),
+            new SqlPostRepositoryImpl());
+    private final PostController postController = new PostController(new SqlPostRepositoryImpl(),
+            new SqlLabelRepositoryImpl());
 
     public void runMenu() {
         while (true) {

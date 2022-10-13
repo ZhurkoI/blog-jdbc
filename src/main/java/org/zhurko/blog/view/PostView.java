@@ -4,6 +4,8 @@ import org.zhurko.blog.controller.LabelController;
 import org.zhurko.blog.controller.PostController;
 import org.zhurko.blog.model.Label;
 import org.zhurko.blog.model.Post;
+import org.zhurko.blog.repository.sql.SqlLabelRepositoryImpl;
+import org.zhurko.blog.repository.sql.SqlPostRepositoryImpl;
 import org.zhurko.blog.util.UserInputReader;
 
 import java.util.Arrays;
@@ -25,8 +27,9 @@ public class PostView {
     };
 
     private final Scanner scanner = new Scanner(System.in);
-    private final PostController postController = new PostController();
-    private final LabelController labelController = new LabelController();
+    private final PostController postController = new PostController(new SqlPostRepositoryImpl(),
+            new SqlLabelRepositoryImpl());
+    private final LabelController labelController = new LabelController(new SqlLabelRepositoryImpl());
 
     public void runMenu() {
         while (true) {

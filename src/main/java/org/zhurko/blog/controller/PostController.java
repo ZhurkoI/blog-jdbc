@@ -4,16 +4,19 @@ import org.zhurko.blog.model.Label;
 import org.zhurko.blog.model.Post;
 import org.zhurko.blog.repository.LabelRepository;
 import org.zhurko.blog.repository.PostRepository;
-import org.zhurko.blog.repository.sql.SqlLabelRepositoryImpl;
-import org.zhurko.blog.repository.sql.SqlPostRepositoryImpl;
 
 import java.util.List;
 import java.util.Set;
 
 public class PostController {
 
-    private final PostRepository postRepo = new SqlPostRepositoryImpl();
-    private final LabelRepository labelRepo = new SqlLabelRepositoryImpl();
+    private final PostRepository postRepo;
+    private final LabelRepository labelRepo;
+
+    public PostController(PostRepository postRepo, LabelRepository labelRepo) {
+        this.postRepo = postRepo;
+        this.labelRepo = labelRepo;
+    }
 
     public Post saveNewPost(String input) {
         return postRepo.save(new Post(input));

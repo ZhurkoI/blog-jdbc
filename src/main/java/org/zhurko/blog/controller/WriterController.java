@@ -4,16 +4,19 @@ import org.zhurko.blog.model.Post;
 import org.zhurko.blog.model.Writer;
 import org.zhurko.blog.repository.PostRepository;
 import org.zhurko.blog.repository.WriterRepository;
-import org.zhurko.blog.repository.sql.SqlWriterRepositoryImpl;
-import org.zhurko.blog.repository.sql.SqlPostRepositoryImpl;
 
 import java.util.List;
 import java.util.Set;
 
 public class WriterController {
 
-    private final WriterRepository writerRepo = new SqlWriterRepositoryImpl();
-    private final PostRepository postRepo = new SqlPostRepositoryImpl();
+    private final WriterRepository writerRepo;
+    private final PostRepository postRepo;
+
+    public WriterController(WriterRepository writerRepo, PostRepository postRepo) {
+        this.writerRepo = writerRepo;
+        this.postRepo = postRepo;
+    }
 
     public List<Writer> getAll() {
         return writerRepo.getAll();
@@ -22,7 +25,6 @@ public class WriterController {
     public Writer getWriterById(Long id) {
         return writerRepo.getById(id);
     }
-
 
     public Writer saveNewWriter(String firstName, String lastName) {
         return writerRepo.save(new Writer(firstName, lastName));

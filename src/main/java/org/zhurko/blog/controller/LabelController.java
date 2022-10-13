@@ -2,13 +2,16 @@ package org.zhurko.blog.controller;
 
 import org.zhurko.blog.model.Label;
 import org.zhurko.blog.repository.LabelRepository;
-import org.zhurko.blog.repository.sql.SqlLabelRepositoryImpl;
 
 import java.util.List;
 
 public class LabelController {
 
-    private final LabelRepository repo = new SqlLabelRepositoryImpl();
+    private final LabelRepository repo;
+
+    public LabelController(LabelRepository repo) {
+        this.repo = repo;
+    }
 
     public Label saveLabel(String input) {
         return this.repo.save(new Label(input));
