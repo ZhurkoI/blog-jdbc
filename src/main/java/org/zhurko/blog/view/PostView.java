@@ -4,8 +4,6 @@ import org.zhurko.blog.controller.LabelController;
 import org.zhurko.blog.controller.PostController;
 import org.zhurko.blog.model.Label;
 import org.zhurko.blog.model.Post;
-import org.zhurko.blog.repository.sql.SqlLabelRepositoryImpl;
-import org.zhurko.blog.repository.sql.SqlPostRepositoryImpl;
 import org.zhurko.blog.util.UserInputReader;
 
 import java.util.Arrays;
@@ -27,9 +25,8 @@ public class PostView {
     };
 
     private final Scanner scanner = new Scanner(System.in);
-    private final PostController postController = new PostController(new SqlPostRepositoryImpl(),
-            new SqlLabelRepositoryImpl());
-    private final LabelController labelController = new LabelController(new SqlLabelRepositoryImpl());
+    private final PostController postController = new PostController();
+    private final LabelController labelController = new LabelController();
 
     public void runMenu() {
         while (true) {
@@ -67,6 +64,7 @@ public class PostView {
         System.out.print("Enter ID of the post you want to remove: ");
         Long numberInput = UserInputReader.readNumberInput();
         postController.deleteById(numberInput);
+        System.out.println("Post has been deleted.");
     }
 
     private void removeLabelFromPost() {
@@ -176,7 +174,7 @@ public class PostView {
         String stringInput;
         System.out.print("Enter post content: ");
         stringInput = scanner.nextLine();
-        Post createdPost = postController.saveNewPost(stringInput);
+        Post createdPost = postController.save(stringInput);
 
         if (createdPost != null) {
             System.out.println("Post has been created:");

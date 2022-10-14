@@ -2,57 +2,67 @@ package org.zhurko.blog.controller;
 
 import org.zhurko.blog.model.Label;
 import org.zhurko.blog.model.Post;
-import org.zhurko.blog.repository.LabelRepository;
-import org.zhurko.blog.repository.PostRepository;
+import org.zhurko.blog.repository.jdbc.JdbcLabelRepositoryImpl;
+import org.zhurko.blog.repository.jdbc.JdbcPostRepositoryImpl;
+import org.zhurko.blog.service.LabelService;
+import org.zhurko.blog.service.PostService;
 
 import java.util.List;
 import java.util.Set;
 
 public class PostController {
 
-    private final PostRepository postRepo;
-    private final LabelRepository labelRepo;
+    private static final String BLANK_INPUT_ERROR_MESSAGE = "The post content cannot be zero-length or " +
+            "contain only spaces.";
 
-    public PostController(PostRepository postRepo, LabelRepository labelRepo) {
-        this.postRepo = postRepo;
-        this.labelRepo = labelRepo;
-    }
+    private final PostService postService = new PostService(new JdbcPostRepositoryImpl());
+    private final LabelService labelService = new LabelService(new JdbcLabelRepositoryImpl());
 
-    public Post saveNewPost(String input) {
-        return postRepo.save(new Post(input));
+    public Post save(String input) {
+        if (input.isBlank()) {
+            System.out.println(BLANK_INPUT_ERROR_MESSAGE);
+            return null;
+        }
+
+        return postService.save(new Post(input));
     }
 
     public List<Post> getAll() {
-        return postRepo.getAll();
+        return postService.getAll();
     }
 
     public Post getPostById(Long id) {
-        return postRepo.getById(id);
+        return postService.getById(id);
     }
 
     public void deleteById(Long id) {
-        postRepo.deleteById(id);
+        postService.deleteById(id);
     }
 
     public Post updatePost(Long id, String newContent) {
-        Post post = postRepo.getById(id);
+        if (newContent.isBlank()) {
+            System.out.println(BLANK_INPUT_ERROR_MESSAGE);
+            return null;
+        }
+
+        Post post = postService.getById(id);
         post.setContent(newContent);
-        return postRepo.update(post);
+        return postService.update(post);
     }
 
     public Post addLabel(Long postId, Long labelId) {
-        Post post = postRepo.getById(postId);
-        Label label = labelRepo.getById(labelId);
+        Post post = postService.getById(postId);
+        Label label = labelService.getById(labelId);
         post.getLabels().add(label);
-        return postRepo.update(post);
+        return postService.update(post);
     }
 
     public Post removeLabel(Long postId, Long labelId) {
-        Post post = postRepo.getById(postId);
+        Post post = postService.getById(postId);
         Set<Label> labels = post.getLabels();
-        Label label = labelRepo.getById(labelId);
+        Label label = labelService.getById(labelId);
         labels.remove(label);
         post.setLabels(labels);
-        return postRepo.update(post);
+        return postService.update(post);
     }
 }

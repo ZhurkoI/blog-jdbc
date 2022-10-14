@@ -4,9 +4,6 @@ import org.zhurko.blog.controller.PostController;
 import org.zhurko.blog.controller.WriterController;
 import org.zhurko.blog.model.Post;
 import org.zhurko.blog.model.Writer;
-import org.zhurko.blog.repository.sql.SqlLabelRepositoryImpl;
-import org.zhurko.blog.repository.sql.SqlPostRepositoryImpl;
-import org.zhurko.blog.repository.sql.SqlWriterRepositoryImpl;
 import org.zhurko.blog.util.UserInputReader;
 
 import java.util.Arrays;
@@ -30,10 +27,8 @@ public class WriterView {
     };
 
     private final Scanner scanner = new Scanner(System.in);
-    private final WriterController writerController = new WriterController(new SqlWriterRepositoryImpl(),
-            new SqlPostRepositoryImpl());
-    private final PostController postController = new PostController(new SqlPostRepositoryImpl(),
-            new SqlLabelRepositoryImpl());
+    private final WriterController writerController = new WriterController();
+    private final PostController postController = new PostController();
 
     public void runMenu() {
         while (true) {
@@ -72,7 +67,7 @@ public class WriterView {
         String stringInput1 = scanner.nextLine();
         System.out.print("Enter last name: ");
         String stringInput2 = scanner.nextLine();
-        Writer createdWriter = writerController.saveNewWriter(stringInput1, stringInput2);
+        Writer createdWriter = writerController.save(stringInput1, stringInput2);
         if (createdWriter != null) {
             System.out.println("Writer has been created:");
             printWriters(createdWriter);
@@ -199,7 +194,7 @@ public class WriterView {
         System.out.print("Enter ID of the writer: ");
         Long numberInput = UserInputReader.readNumberInput();
         writerController.deleteById(numberInput);
-        System.out.println("Post has been deleted.");
+        System.out.println("Writer has been deleted.");
     }
 
     private int getChoice(String[] menuEntries) {

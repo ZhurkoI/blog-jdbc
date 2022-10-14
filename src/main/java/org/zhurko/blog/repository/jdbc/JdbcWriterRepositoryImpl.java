@@ -1,15 +1,13 @@
-package org.zhurko.blog.repository.sql;
+package org.zhurko.blog.repository.jdbc;
 
 import org.zhurko.blog.model.Post;
-import org.zhurko.blog.model.PostStatus;
 import org.zhurko.blog.model.Writer;
 import org.zhurko.blog.repository.WriterRepository;
+import org.zhurko.blog.util.JdbcUtils;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -17,7 +15,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-public class SqlWriterRepositoryImpl implements WriterRepository {
+import static org.zhurko.blog.util.ResultSetUtils.mapResultSetToPost;
+import static org.zhurko.blog.util.ResultSetUtils.mapResultSetToWriter;
+
+public class JdbcWriterRepositoryImpl implements WriterRepository {
 
     private static final String SAVE_WRITER = "INSERT INTO writers (first_name, last_name) VALUES (?, ?)";
     private static final String GET_ALL_WRITERS = "SELECT * FROM writers ORDER BY id ASC";
@@ -33,20 +34,14 @@ public class SqlWriterRepositoryImpl implements WriterRepository {
     public Writer getById(Long id) {
         Writer writer = null;
 
-        try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement prepStatement = connection.prepareStatement(GET_WRITER_BY_ID)) {
+        try (PreparedStatement prepStatement = JdbcUtils.getPreparedStatement(GET_WRITER_BY_ID)) {
             prepStatement.setLong(1, id);
             ResultSet resultSet = prepStatement.executeQuery();
             while (resultSet.next()) {
-                writer = new Writer(
-                        resultSet.getLong("id"),
-                        resultSet.getString("first_name"),
-                        resultSet.getString("last_name")
-                );
+                writer = mapResultSetToWriter(resultSet);
                 Set<Post> posts = getPostsCreatedByWriter(writer);
                 writer.setPosts(posts);
             }
-
         } catch (SQLException ex) {
             System.out.println("Cannot read data from DB.");
         }
@@ -63,20 +58,14 @@ public class SqlWriterRepositoryImpl implements WriterRepository {
     public Writer save(Writer writer) {
         Writer savedWriter = null;
 
-        try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement prepStatement = connection.prepareStatement(SAVE_WRITER,
-                     Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement prepStatement = JdbcUtils.getPreparedStatementWithGeneratedKeys(SAVE_WRITER)) {
             prepStatement.setString(1, writer.getFirstName());
             prepStatement.setString(2, writer.getLastName());
             prepStatement.executeUpdate();
 
-            ResultSet resultSet = prepStatement.getGeneratedKeys();
-            while (resultSet.next()) {
-                savedWriter = new Writer(
-                        resultSet.getLong(1),
-                        writer.getFirstName(),
-                        writer.getLastName()
-                );
+            ResultSet generatedKeys = prepStatement.getGeneratedKeys();
+            while (generatedKeys.next()) {
+                savedWriter = getById(generatedKeys.getLong(1));
             }
         } catch (SQLException ex) {
             System.out.println("Cannot read data from DB.");
@@ -91,12 +80,11 @@ public class SqlWriterRepositoryImpl implements WriterRepository {
 
         Set<Post> existentPostsOfWriters = getPostsCreatedByWriter(writer);
 
-        try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement updateWriter = connection.prepareStatement(UPDATE_WRITER);
-             PreparedStatement addPost = connection.prepareStatement(ADD_POST_TO_WRITER);
-             PreparedStatement removePost = connection.prepareStatement(REMOVE_POST_FROM_WRITER)) {
+        try (PreparedStatement updateWriter = JdbcUtils.getPreparedStatement(UPDATE_WRITER);
+             PreparedStatement addPost = JdbcUtils.getPreparedStatement(ADD_POST_TO_WRITER);
+             PreparedStatement removePost = JdbcUtils.getPreparedStatement(REMOVE_POST_FROM_WRITER)) {
 
-            connection.setAutoCommit(false);
+            JdbcUtils.getConnection().setAutoCommit(false);
 
             updateWriter.setString(1, writer.getFirstName());
             updateWriter.setString(2, writer.getLastName());
@@ -116,7 +104,7 @@ public class SqlWriterRepositoryImpl implements WriterRepository {
                 removePost.setLong(1, extraPost.getId());
                 removePost.executeUpdate();
             }
-            connection.commit();
+            JdbcUtils.getConnection().commit();
             updatedWriter = getById(writer.getId());
         } catch (SQLException ex) {
             System.out.println("Cannot save data to DB.");
@@ -127,8 +115,7 @@ public class SqlWriterRepositoryImpl implements WriterRepository {
 
     @Override
     public void deleteById(Long id) {
-        try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement prepStatement = connection.prepareStatement(DELETE_WRITER_BY_ID)) {
+        try (PreparedStatement prepStatement = JdbcUtils.getPreparedStatement(DELETE_WRITER_BY_ID)) {
             prepStatement.setLong(1, id);
             prepStatement.executeUpdate();
         } catch (SQLException ex) {
@@ -139,15 +126,10 @@ public class SqlWriterRepositoryImpl implements WriterRepository {
     private List<Writer> getAllWritersInternal() {
         List<Writer> writers = new ArrayList<>();
 
-        try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement prepStatement = connection.prepareStatement(GET_ALL_WRITERS)) {
+        try (PreparedStatement prepStatement = JdbcUtils.getPreparedStatement(GET_ALL_WRITERS)) {
             ResultSet resultSet = prepStatement.executeQuery();
             while (resultSet.next()) {
-                Writer writer = new Writer(
-                        resultSet.getLong("id"),
-                        resultSet.getString("first_name"),
-                        resultSet.getString("last_name")
-                );
+                Writer writer = mapResultSetToWriter(resultSet);
                 Set<Post> posts = getPostsCreatedByWriter(writer);
                 writer.setPosts(posts);
                 writers.add(writer);
@@ -166,18 +148,11 @@ public class SqlWriterRepositoryImpl implements WriterRepository {
     private Set<Post> getPostsCreatedByWriter(Writer writer) {
         Set<Post> posts = new HashSet<>();
 
-        try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement prepStatement = connection.prepareStatement(GET_POSTS_CREATED_BY_WRITER)) {
+        try (PreparedStatement prepStatement = JdbcUtils.getPreparedStatement(GET_POSTS_CREATED_BY_WRITER)) {
             prepStatement.setLong(1, writer.getId());
             ResultSet resultSet = prepStatement.executeQuery();
             while (resultSet.next()) {
-                Post post = new Post(
-                        resultSet.getLong("id"),
-                        resultSet.getString("content"),
-                        resultSet.getTimestamp("created"),
-                        resultSet.getTimestamp("updated"),
-                        PostStatus.valueOf(resultSet.getString("post_status"))
-                );
+                Post post = mapResultSetToPost(resultSet);
                 posts.add(post);
             }
         } catch (SQLException ex) {

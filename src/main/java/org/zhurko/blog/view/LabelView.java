@@ -2,7 +2,6 @@ package org.zhurko.blog.view;
 
 import org.zhurko.blog.controller.LabelController;
 import org.zhurko.blog.model.Label;
-import org.zhurko.blog.repository.sql.SqlLabelRepositoryImpl;
 import org.zhurko.blog.util.UserInputReader;
 
 import java.util.Arrays;
@@ -21,7 +20,7 @@ public class LabelView {
             "6 - Delete label by ID"
     };
     private final Scanner scanner = new Scanner(System.in);
-    private final LabelController labelController = new LabelController(new SqlLabelRepositoryImpl());
+    private final LabelController labelController = new LabelController();
 
     public void runMenu() {
         while (true) {
@@ -55,7 +54,7 @@ public class LabelView {
     private void createLabel() {
         System.out.print("Enter name of the label: ");
         String stringInput = scanner.nextLine();
-        Label createdLabel = labelController.saveLabel(stringInput);
+        Label createdLabel = labelController.save(stringInput);
 
         if (createdLabel != null) {
             System.out.println("Label has been created:");
@@ -122,6 +121,7 @@ public class LabelView {
         System.out.print("Enter ID of the label you want to remove: ");
         Long numberInput = UserInputReader.readNumberInput();
         labelController.deleteLabelById(numberInput);
+        System.out.println("Label has been deleted.");
     }
 
     private int getChoice(String[] menuEntries) {

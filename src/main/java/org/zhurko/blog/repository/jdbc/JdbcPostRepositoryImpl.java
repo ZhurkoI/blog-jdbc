@@ -1,15 +1,14 @@
-package org.zhurko.blog.repository.sql;
+package org.zhurko.blog.repository.jdbc;
 
 import org.zhurko.blog.model.Label;
 import org.zhurko.blog.model.Post;
 import org.zhurko.blog.model.PostStatus;
 import org.zhurko.blog.repository.PostRepository;
+import org.zhurko.blog.util.JdbcUtils;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +18,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-public class SqlPostRepositoryImpl implements PostRepository {
+import static org.zhurko.blog.util.ResultSetUtils.mapResultSetToPost;
+
+public class JdbcPostRepositoryImpl implements PostRepository {
 
     private static final String SAVE_POST = "INSERT INTO posts (content, created, updated, post_status) " +
             "VALUES (?, ?, ?, ?)";
@@ -39,18 +40,12 @@ public class SqlPostRepositoryImpl implements PostRepository {
     public Post getById(Long id) {
         Post post = null;
 
-        try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement prepStatement = connection.prepareStatement(GET_POST_BY_ID)) {
+        try (PreparedStatement prepStatement = JdbcUtils.getPreparedStatement(GET_POST_BY_ID)) {
             prepStatement.setLong(1, id);
             ResultSet resultSet = prepStatement.executeQuery();
+
             while (resultSet.next()) {
-                post = new Post(
-                        resultSet.getLong("id"),
-                        resultSet.getString("content"),
-                        resultSet.getTimestamp("created"),
-                        resultSet.getTimestamp("updated"),
-                        PostStatus.valueOf(resultSet.getString("post_status"))
-                );
+                post = mapResultSetToPost(resultSet);
                 Set<Label> labels = getLabelsRelatedToPost(post);
                 post.setLabels(labels);
             }
@@ -69,9 +64,8 @@ public class SqlPostRepositoryImpl implements PostRepository {
     @Override
     public Post save(Post post) {
         Post savedPost = null;
-        try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement prepStatement = connection.prepareStatement(SAVE_POST,
-                     Statement.RETURN_GENERATED_KEYS)) {
+
+        try (PreparedStatement prepStatement = JdbcUtils.getPreparedStatementWithGeneratedKeys(SAVE_POST)) {
             Date date = new Date();
             Timestamp timestamp = new Timestamp(date.getTime());
             prepStatement.setString(1, post.getContent());
@@ -80,15 +74,9 @@ public class SqlPostRepositoryImpl implements PostRepository {
             prepStatement.setString(4, PostStatus.UNDER_REVIEW.name());
             prepStatement.executeUpdate();
 
-            ResultSet resultSet = prepStatement.getGeneratedKeys();
-            while (resultSet.next()) {
-                savedPost = new Post(
-                        resultSet.getLong(1),
-                        post.getContent(),
-                        date,
-                        date,
-                        PostStatus.UNDER_REVIEW
-                );
+            ResultSet generatedKeys = prepStatement.getGeneratedKeys();
+            while (generatedKeys.next()) {
+                savedPost = getById(generatedKeys.getLong(1));
             }
         } catch (SQLException ex) {
             System.out.printf("Cannot save '%s' to DB.%n", post.getContent());
@@ -103,11 +91,11 @@ public class SqlPostRepositoryImpl implements PostRepository {
 
         Set<Label> linkedLabels = getLabelsRelatedToPost(post);
 
-        try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement updatePost = connection.prepareStatement(UPDATE_POST);
-             PreparedStatement addLabel = connection.prepareStatement(ADD_LABEL_TO_POST);
-             PreparedStatement removeLabel = connection.prepareStatement(REMOVE_LABEL_FROM_POST)) {
-            connection.setAutoCommit(false);
+        try (PreparedStatement updatePost = JdbcUtils.getPreparedStatement(UPDATE_POST);
+             PreparedStatement addLabel = JdbcUtils.getPreparedStatement(ADD_LABEL_TO_POST);
+             PreparedStatement removeLabel = JdbcUtils.getPreparedStatement(REMOVE_LABEL_FROM_POST)) {
+
+            JdbcUtils.getConnection().setAutoCommit(false);
 
             Timestamp timestamp = new Timestamp(new Date().getTime());
             updatePost.setString(1, post.getContent());
@@ -131,7 +119,7 @@ public class SqlPostRepositoryImpl implements PostRepository {
                 removeLabel.setLong(2, extraLabel.getId());
                 removeLabel.executeUpdate();
             }
-            connection.commit();
+            JdbcUtils.getConnection().commit();
             updatedPost = getById(post.getId());
         } catch (SQLException ex) {
             System.out.println("Cannot save data to DB.");
@@ -142,8 +130,7 @@ public class SqlPostRepositoryImpl implements PostRepository {
 
     @Override
     public void deleteById(Long id) {
-        try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement prepStatement = connection.prepareStatement(DELETE_POST_BY_ID)) {
+        try (PreparedStatement prepStatement = JdbcUtils.getPreparedStatement(DELETE_POST_BY_ID)) {
             Timestamp timestamp = new Timestamp(new Date().getTime());
             prepStatement.setTimestamp(1, timestamp);
             prepStatement.setString(2, PostStatus.DELETED.name());
@@ -157,17 +144,10 @@ public class SqlPostRepositoryImpl implements PostRepository {
     private List<Post> getAllPostsInternal() {
         List<Post> posts = new ArrayList<>();
 
-        try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement prepStatement = connection.prepareStatement(GET_ALL_NOT_DELETED_POSTS)) {
+        try (PreparedStatement prepStatement = JdbcUtils.getPreparedStatement(GET_ALL_NOT_DELETED_POSTS)) {
             ResultSet resultSet = prepStatement.executeQuery();
             while (resultSet.next()) {
-                Post post = new Post(
-                        resultSet.getLong("id"),
-                        resultSet.getString("content"),
-                        resultSet.getTimestamp("created"),
-                        resultSet.getTimestamp("updated"),
-                        PostStatus.valueOf(resultSet.getString("post_status"))
-                );
+                Post post = mapResultSetToPost(resultSet);
                 Set<Label> labels = getLabelsRelatedToPost(post);
                 post.setLabels(labels);
                 posts.add(post);
@@ -186,8 +166,7 @@ public class SqlPostRepositoryImpl implements PostRepository {
     private Set<Label> getLabelsRelatedToPost(Post post) {
         Set<Label> labels = new HashSet<>();
 
-        try (Connection connection = ConnectionBuilder.getConnection();
-             PreparedStatement prepStatement = connection.prepareStatement(GET_POST_LABELS)) {
+        try (PreparedStatement prepStatement = JdbcUtils.getPreparedStatement(GET_POST_LABELS)) {
             prepStatement.setLong(1, post.getId());
             ResultSet resultSet = prepStatement.executeQuery();
             while (resultSet.next()) {

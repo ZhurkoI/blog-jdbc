@@ -1,41 +1,50 @@
 package org.zhurko.blog.controller;
 
 import org.zhurko.blog.model.Label;
-import org.zhurko.blog.repository.LabelRepository;
+import org.zhurko.blog.repository.jdbc.JdbcLabelRepositoryImpl;
+import org.zhurko.blog.service.LabelService;
 
 import java.util.List;
 
 public class LabelController {
 
-    private final LabelRepository repo;
+    private static final String BLANK_INPUT_ERROR_MESSAGE = "The label name cannot be zero-length or contain only spaces.";
 
-    public LabelController(LabelRepository repo) {
-        this.repo = repo;
-    }
+    private final LabelService labelService = new LabelService(new JdbcLabelRepositoryImpl());
 
-    public Label saveLabel(String input) {
-        return this.repo.save(new Label(input));
+    public Label save(String input) {
+        if (input.isBlank()) {
+            System.out.println(BLANK_INPUT_ERROR_MESSAGE);
+            return null;
+        }
+
+        return labelService.save(new Label(input));
     }
 
     public Label findLabelByName(String name) {
-        return this.repo.findByName(name);
+        return labelService.findByName(name);
     }
 
     public List<Label> getAll() {
-        return this.repo.getAll();
+        return labelService.getAll();
     }
 
     public void deleteLabelById(Long id) {
-        this.repo.deleteById(id);
+        labelService.deleteById(id);
     }
 
     public Label updateLabel(String existentName, String newName) {
-        Label label = this.repo.findByName(existentName);
+        if (newName.isBlank()) {
+            System.out.println(BLANK_INPUT_ERROR_MESSAGE);
+            return null;
+        }
+
+        Label label = labelService.findByName(existentName);
         label.setName(newName);
-        return this.repo.update(label);
+        return labelService.update(label);
     }
 
     public Label getLabelById(Long id) {
-        return this.repo.getById(id);
+        return labelService.getById(id);
     }
 }

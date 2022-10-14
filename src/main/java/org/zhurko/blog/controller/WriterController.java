@@ -2,58 +2,67 @@ package org.zhurko.blog.controller;
 
 import org.zhurko.blog.model.Post;
 import org.zhurko.blog.model.Writer;
-import org.zhurko.blog.repository.PostRepository;
-import org.zhurko.blog.repository.WriterRepository;
+import org.zhurko.blog.repository.jdbc.JdbcPostRepositoryImpl;
+import org.zhurko.blog.repository.jdbc.JdbcWriterRepositoryImpl;
+import org.zhurko.blog.service.PostService;
+import org.zhurko.blog.service.WriterService;
 
 import java.util.List;
 import java.util.Set;
 
 public class WriterController {
 
-    private final WriterRepository writerRepo;
-    private final PostRepository postRepo;
+    private static final String BLANK_INPUT_ERROR_MESSAGE = "Name cannot be zero-length or contain only spaces.";
 
-    public WriterController(WriterRepository writerRepo, PostRepository postRepo) {
-        this.writerRepo = writerRepo;
-        this.postRepo = postRepo;
-    }
+    private final WriterService writerService = new WriterService(new JdbcWriterRepositoryImpl());
+    private final PostService postService = new PostService(new JdbcPostRepositoryImpl());
 
     public List<Writer> getAll() {
-        return writerRepo.getAll();
+        return writerService.getAll();
     }
 
     public Writer getWriterById(Long id) {
-        return writerRepo.getById(id);
+        return writerService.getById(id);
     }
 
-    public Writer saveNewWriter(String firstName, String lastName) {
-        return writerRepo.save(new Writer(firstName, lastName));
+    public Writer save(String firstName, String lastName) {
+        if (firstName.isBlank() || lastName.isBlank()) {
+            System.out.println(BLANK_INPUT_ERROR_MESSAGE);
+            return null;
+        }
+
+        return writerService.save(new Writer(firstName, lastName));
     }
 
     public void deleteById(Long id) {
-        writerRepo.deleteById(id);
+        writerService.deleteById(id);
     }
 
     public Writer updateWriter(Long id, String firstName, String lastName) {
-        Writer writer = writerRepo.getById(id);
+        if (firstName.isBlank() || lastName.isBlank()) {
+            System.out.println(BLANK_INPUT_ERROR_MESSAGE);
+            return null;
+        }
+
+        Writer writer = writerService.getById(id);
         writer.setFirstName(firstName);
         writer.setLastName(lastName);
-        return writerRepo.update(writer);
+        return writerService.update(writer);
     }
 
     public Writer addPost(Long writerId, Long postId) {
-        Writer writer = writerRepo.getById(writerId);
-        Post post = postRepo.getById(postId);
+        Writer writer = writerService.getById(writerId);
+        Post post = postService.getById(postId);
         writer.getPosts().add(post);
-        return writerRepo.update(writer);
+        return writerService.update(writer);
     }
 
     public Writer removePost(Long writerId, Long postId) {
-        Writer writer = writerRepo.getById(writerId);
+        Writer writer = writerService.getById(writerId);
         Set<Post> posts = writer.getPosts();
-        Post post = postRepo.getById(postId);
+        Post post = postService.getById(postId);
         posts.remove(post);
         writer.setPosts(posts);
-        return writerRepo.update(writer);
+        return writerService.update(writer);
     }
 }

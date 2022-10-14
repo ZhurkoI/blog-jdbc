@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
 
-    <changeSet id="Creating initial tables - labels, posts, writers" author="ZhurkoI">
+    <changeSet id="creating 'writers' table" author="ZhurkoI">
         <sql>
             CREATE TABLE IF NOT EXISTS writers (
                 id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -13,12 +13,16 @@
                 last_name VARCHAR(255) NOT NULL
             );
         </sql>
+    </changeSet>
+    <changeSet id="creating 'labels' table" author="ZhurkoI">
         <sql>
             CREATE TABLE IF NOT EXISTS labels (
                 id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(255) UNIQUE
+                name VARCHAR(255) NOT NULL UNIQUE
             );
         </sql>
+    </changeSet>
+    <changeSet id="creating 'posts' table" author="ZhurkoI">
         <sql>
             CREATE TABLE IF NOT EXISTS posts (
                 id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -32,6 +36,8 @@
                     ON DELETE SET NULL
             );
         </sql>
+    </changeSet>
+    <changeSet id="creating 'post_label' table" author="ZhurkoI">
         <sql>
             CREATE TABLE IF NOT EXISTS post_label (
                 id BIGINT AUTO_INCREMENT PRIMARY KEY,
