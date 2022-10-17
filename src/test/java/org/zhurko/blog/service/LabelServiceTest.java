@@ -1,4 +1,4 @@
-package org.zhurko.blog.controller;
+package org.zhurko.blog.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,43 +16,42 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 @ExtendWith(MockitoExtension.class)
-class LabelControllerTest {
+class LabelServiceTest {
 
     @Mock
-    LabelRepository labelRepo;
+    private LabelRepository labelRepo;
 
     @InjectMocks
-    LabelController labelController;
+    private LabelService labelService;
 
     @Test
-    void givenLabelController_whenInvokeSaveLabel_thenLabelIsSaved() {
+    void givenLabelService_whenInvokeSaveLabel_thenLabelIsSaved() {
         String newLabelName = "Label_1";
         Label newLabel = new Label(newLabelName);
 
         when(labelRepo.save(newLabel)).thenReturn(newLabel);
 
-        Label actualLabel = labelController.saveLabel(newLabelName);
+        Label actualLabel = labelService.save(newLabel);
 
         assertEquals(newLabelName, actualLabel.getName());
-        verify(labelRepo, times(1)).save(new Label(newLabelName));
+        verify(labelRepo, times(1)).save(newLabel);
     }
 
     @Test
-    void givenLabelController_whenInvokeFindLabelByName_thenCorrectLabelIsFound() {
+    void givenLabelService_whenInvokeFindLabelByName_thenCorrectLabelIsFound() {
         String expectedLabelName = "Label_1";
 
         when(labelRepo.findByName(expectedLabelName)).thenReturn(new Label(1L, expectedLabelName));
 
-        Label actualLabel = labelController.findLabelByName(expectedLabelName);
+        Label actualLabel = labelService.findByName(expectedLabelName);
 
         assertEquals(expectedLabelName, actualLabel.getName());
         verify(labelRepo, times(1)).findByName(expectedLabelName);
     }
 
     @Test
-    void givenLabelController_whenInvokeGetAllLabels_thanGetAllMethodOfRepositoryReturnsListOfLabels() {
+    void givenLabelService_whenInvokeGetAllLabels_thanGetAllMethodOfRepositoryReturnsListOfLabels() {
         List<Label> expectedLabels = new ArrayList<>();
         expectedLabels.add(new Label(1L, "label_1"));
         expectedLabels.add(new Label(2L, "label_2"));
@@ -60,45 +59,43 @@ class LabelControllerTest {
 
         when(labelRepo.getAll()).thenReturn(expectedLabels);
 
-        List<Label> actualLabels = labelController.getAll();
+        List<Label> actualLabels = labelService.getAll();
 
         assertEquals(expectedLabels.size(), actualLabels.size());
         verify(labelRepo, times(1)).getAll();
     }
 
     @Test
-    void givenLabelController_whenInvokeDeleteLabelById_thenDeleteMethodOfRepoIsCalledOneTime() {
+    void givenLabelService_whenInvokeDeleteLabelById_thenDeleteMethodOfRepoIsCalledOneTime() {
         Long labelId = 1L;
 
-        labelController.deleteLabelById(labelId);
+        labelService.deleteById(labelId);
 
         verify(labelRepo, times(1)).deleteById(labelId);
     }
 
     @Test
-    void givenLabelController_whenInvokeUpdateLabel_thenLabelIsUpdated() {
-        Label existentLabel = new Label(1L, "Label_1");
+    void givenLabelService_whenInvokeUpdateLabel_thenLabelIsUpdated() {
         String newName = "Label_1_EDITED";
         Label expectedLabel = new Label(1L, newName);
 
-        when(labelRepo.findByName(existentLabel.getName())).thenReturn(existentLabel);
         when(labelRepo.update(expectedLabel)).thenReturn(expectedLabel);
 
 
-        Label actualLabel = labelController.updateLabel(existentLabel.getName(), newName);
+        Label actualLabel = labelService.update(expectedLabel);
 
         assertEquals(expectedLabel, actualLabel);
         verify(labelRepo, times(1)).update(expectedLabel);
     }
 
     @Test
-    void givenLabelController_whenInvokeGetLabelById_thenCorrectLabelIsFound() {
+    void givenLabelService_whenInvokeGetLabelById_thenCorrectLabelIsFound() {
         Long labelId = 1L;
         Label expectedLabel = new Label(1L, "Label_1");
 
         when(labelRepo.getById(labelId)).thenReturn(expectedLabel);
 
-        Label actualLabel = labelController.getLabelById(labelId);
+        Label actualLabel = labelService.getById(labelId);
 
         assertEquals(expectedLabel, actualLabel);
         verify(labelRepo, times(1)).getById(labelId);
