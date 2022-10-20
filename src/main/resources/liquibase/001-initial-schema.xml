@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+    <changeSet id="creating 'writers' table" author="ZhurkoI">
+        <sql>
+            CREATE TABLE IF NOT EXISTS writers (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                first_name VARCHAR(255) NOT NULL,
+                last_name VARCHAR(255) NOT NULL
+            );
+        </sql>
+    </changeSet>
+    <changeSet id="creating 'labels' table" author="ZhurkoI">
+        <sql>
+            CREATE TABLE IF NOT EXISTS labels (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL UNIQUE
+            );
+        </sql>
+    </changeSet>
+    <changeSet id="creating 'posts' table" author="ZhurkoI">
+        <sql>
+            CREATE TABLE IF NOT EXISTS posts (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                content TEXT NOT NULL,
+                created TIMESTAMP NOT NULL,
+                updated TIMESTAMP NOT NULL,
+                post_status VARCHAR(255) NOT NULL,
+                writer_id BIGINT,
+                FOREIGN KEY (writer_id)
+                    REFERENCES writers (id)
+                    ON DELETE SET NULL
+            );
+        </sql>
+    </changeSet>
+    <changeSet id="creating 'post_label' table" author="ZhurkoI">
+        <sql>
+            CREATE TABLE IF NOT EXISTS post_label (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                post_id BIGINT,
+                label_id BIGINT,
+                FOREIGN KEY (post_id)
+                    REFERENCES posts (id)
+                    ON DELETE CASCADE,
+                FOREIGN KEY (label_id)
+                    REFERENCES labels (id)
+                    ON DELETE CASCADE
+            );
+        </sql>
+    </changeSet>
+</databaseChangeLog>
+
